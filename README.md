@@ -9,9 +9,9 @@ docker build . -t chatbot_fe
 
 This will build a Docker image with the tag `chatbot_fe`.
 
-## Step 4: Run the Docker Container
+## Step 2: Run the Docker Container
 
 Finally, run the Docker container with the following command:
 
 ```
-docker run -p 5173:5173 chatbot_ai
+docker run -p 5173:5173 chatbot_fe

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hubbard-fe-deployment
+  labels:
+    app: hubbard-fe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hubbard-fe
+  template:
+    metadata:
+      labels:
+        app: hubbard-fe
+    spec:
+      containers:
+        - name: hubbard-fe-container
+          image: registry.digitalocean.com/container-hubbard/hubbard_fe:latest
+          ports:
+            - containerPort: 5173
+              protocol: TCP
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: my-docker-credentials
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%

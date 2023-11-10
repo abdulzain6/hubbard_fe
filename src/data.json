@@ -1,0 +1,42 @@
+[
+    {
+        "icon": "art",
+        "title": "Art",
+        "description": "Create digital art, from sketches to..."
+    },
+    {
+        "icon": "calendar",
+        "title": "Booking",
+        "description": "Create digital art, from sketches to... "
+    },
+    {
+        "icon": "code",
+        "title": "Code",
+        "description": "Create digital art, from sketches to..."
+    },
+    {
+        "icon": "edit",
+        "title": "Content",
+        "description": "Create digital art, from sketches to..."
+    },
+    {
+        "icon": "entertainment",
+        "title": "Entertainment",
+        "description": "Create digital art, from sketches to..."
+    },
+    {
+        "icon": "book",
+        "title": "Translator",
+        "description": "Create digital art, from sketches to..."
+    },
+    {
+        "icon": "health",
+        "title": "Health",
+        "description": "Create digital art, from sketches to..."
+    },
+    {
+        "icon": "music",
+        "title": "Music",
+        "description": "Create digital art, from sketches to..."
+    }
+]

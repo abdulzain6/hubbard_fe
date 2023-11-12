@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import AppHeader from '../components/appheader.vue'
 import Navbar from '../components/navbar.vue'
 import { useUserStore } from '@/store/user';
-import { useAiBotStore } from '@/store/ai_bot'
+import { ChatTypeEnum, useAiBotStore } from '@/store/ai_bot'
 import { useDashboardStore } from '@/store/dashboard'
 import { computed } from 'vue';
 import Loading from '../components/svg/loading.vue'
@@ -35,40 +35,42 @@ function getCurrentFormattedDate() {
     return currentDate.toLocaleString('en-US', options);
 }
 async function submitQuery() {
-    messageHistory.value = message.value
-    message.value = ''
-    userStore.updateUserChatHistory(message.value)
-    dashboardStore.updateChatMessages({
-        message: messageHistory.value,
-        type: 'user',
-        time: getCurrentFormattedDate()
-    })
-
-    try {
-        loading.value = true
-        const response = await axios.post('/api/v1/chat', {
-            "question": messageHistory.value,
-            "chat_history": dashboardStore.chat_history,
-            "get_highest_ranking_response": true,
-            "temperature": 0
-        }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        dashboardStore.updateChatHistory([messageHistory.value, response.data.ai_response])
+    if (aiStore.chatType === ChatTypeEnum.default) {
+        messageHistory.value = message.value
         message.value = ''
+        userStore.updateUserChatHistory(message.value)
         dashboardStore.updateChatMessages({
-            message: response.data.ai_response,
-            type: 'bot',
+            message: messageHistory.value,
+            type: 'user',
             time: getCurrentFormattedDate()
         })
-    } catch (error: any) {
-        if (error.response.status === 401) {
-            router.push('/sign-in')
+
+        try {
+            loading.value = true
+            const response = await axios.post('/api/v1/chat', {
+                "question": messageHistory.value,
+                "chat_history": dashboardStore.chat_history,
+                "get_highest_ranking_response": true,
+                "temperature": 0
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            dashboardStore.updateChatHistory([messageHistory.value, response.data.ai_response])
+            message.value = ''
+            dashboardStore.updateChatMessages({
+                message: response.data.ai_response,
+                type: 'bot',
+                time: getCurrentFormattedDate()
+            })
+        } catch (error: any) {
+            if (error.response.status === 401) {
+                router.push('/sign-in')
+            }
+        } finally {
+            loading.value = false
         }
-    } finally {
-        loading.value = false
     }
 }
 

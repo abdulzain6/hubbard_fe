@@ -30,6 +30,7 @@ function renderImg(str: any) {
     box-shadow: 0px 0px 23px 0px rgba(185, 135, 255, 0.11);
     margin-right: 0;
     width: calc(100% / 2 - 10px);
+    cursor: pointer;
 
     @media screen and (min-width: 768px) {    
         width: calc(100% / 3 - 10px);

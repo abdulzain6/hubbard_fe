@@ -2,7 +2,6 @@ import { defineStore } from "pinia";
 import axios from '../axios'
 import router from "@/router";
 import { toast } from 'vue-sonner'
-import * as jose from 'jose'
 
 interface Register {
     email: string;
@@ -42,6 +41,7 @@ export const useUserStore = defineStore('user', {
                 }
                 return await router.push('/dashboard')
             } catch (error: any) {
+                console.log(error)
                 toast.error(error.response.data.detail)
                 return this.message = {
                     message: error.response.data.detail,

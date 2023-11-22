@@ -8,12 +8,7 @@ const router = useRouter()
 const botStore = useAiBotStore()
 async function setEvaluateOption(settings: ChatSettings) {
     botStore.setChat(ChatTypeEnum.evaluate, settings)
-    botStore.updateEvaluationChatMessage({
-        message: '',
-        type: '',
-        time: '',
-        best_response: ''
-    })
+    botStore.clearChat()
     router.push('/chat')
 }
 </script>

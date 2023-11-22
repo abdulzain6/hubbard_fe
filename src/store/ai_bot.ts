@@ -55,6 +55,9 @@ export const useAiBotStore = defineStore('ai_bot', {
         },
         updateEvaluationChatMessage(message: Message) {
             this.chat_messages.push(message)
+        },
+        clearChat() {
+            this.chat_messages = []
         }
     }
 })

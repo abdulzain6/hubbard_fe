@@ -21,11 +21,6 @@ const userResponse = reactive({
     message: '',
     time: ''
 })
-let evaluationResponse = reactive<BotResponseDto>({
-    grade: '',
-    message: '',
-    best_response: ''
-})
 const userName = computed(() => {
     return userStore.user.profile.name.split(' ')[0]
 })

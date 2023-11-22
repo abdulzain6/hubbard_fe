@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router';
 import AppHeader from '../components/appheader.vue'
 import Navbar from '../components/navbar.vue'
 import { useUserStore } from '@/store/user';
-import { ChatTypeEnum, useAiBotStore } from '@/store/ai_bot'
+import { ChatTypeEnum, useAiBotStore, type BotResponseDto } from '@/store/ai_bot'
 import { useDashboardStore } from '@/store/dashboard'
 import { computed } from 'vue';
 import Loading from '../components/svg/loading.vue'
@@ -17,11 +17,18 @@ const dashboardStore = useDashboardStore()
 const loading = ref(false)
 const message = ref('')
 const messageHistory = ref('')
-
+const userResponse = reactive({
+    message: '',
+    time: ''
+})
+let evaluationResponse = reactive<BotResponseDto>({
+    grade: '',
+    message: '',
+    best_response: ''
+})
 const userName = computed(() => {
     return userStore.user.profile.name.split(' ')[0]
 })
-
 function getCurrentFormattedDate() {
     const options: any = {
         weekday: 'long',
@@ -34,43 +41,69 @@ function getCurrentFormattedDate() {
     const currentDate = new Date();
     return currentDate.toLocaleString('en-US', options);
 }
-async function submitQuery() {
-    if (aiStore.chatType === ChatTypeEnum.default) {
-        messageHistory.value = message.value
-        message.value = ''
-        userStore.updateUserChatHistory(message.value)
-        dashboardStore.updateChatMessages({
-            message: messageHistory.value,
+
+async function evaluateUserAnswer() {
+    try {
+        loading.value = true
+        aiStore.updateEvaluationChatMessage({
+            message: userResponse.message,
             type: 'user',
             time: getCurrentFormattedDate()
         })
-
-        try {
-            loading.value = true
-            const response = await axios.post('/api/v1/chat', {
-                "question": messageHistory.value,
-                "chat_history": dashboardStore.chat_history,
-                "get_highest_ranking_response": true,
-                "temperature": 0
-            }, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            dashboardStore.updateChatHistory([messageHistory.value, response.data.ai_response])
-            message.value = ''
-            dashboardStore.updateChatMessages({
-                message: response.data.ai_response,
-                type: 'bot',
-                time: getCurrentFormattedDate()
-            })
-        } catch (error: any) {
-            if (error.response.status === 401) {
-                router.push('/sign-in')
-            }
-        } finally {
-            loading.value = false
+        const res = await aiStore.evaluateUserAnswer({
+            scenario_name: aiStore.chatSettings.scenario,
+            salesman_response: userResponse.message
+        })
+        if(res) {
+        aiStore.updateEvaluationChatMessage({
+            message: res.message,
+            type: 'bot',
+            time: getCurrentFormattedDate(),
+            best_response: res.best_response
+        })
         }
+        
+    } catch (error: any) {
+        if (error.response.status === 401) {
+            router.push('/sign-in')
+        }
+    }
+}
+async function submitQuery() {
+    messageHistory.value = message.value
+    message.value = ''
+    userStore.updateUserChatHistory(message.value)
+    dashboardStore.updateChatMessages({
+        message: messageHistory.value,
+        type: 'user',
+        time: getCurrentFormattedDate()
+    })
+
+    try {
+        loading.value = true
+        const response = await axios.post('/api/v1/chat', {
+            "question": messageHistory.value,
+            "chat_history": dashboardStore.chat_history,
+            "get_highest_ranking_response": true,
+            "temperature": 0
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        dashboardStore.updateChatHistory([messageHistory.value, response.data.ai_response])
+        message.value = ''
+        dashboardStore.updateChatMessages({
+            message: response.data.ai_response,
+            type: 'bot',
+            time: getCurrentFormattedDate()
+        })
+    } catch (error: any) {
+        if (error.response.status === 401) {
+            router.push('/sign-in')
+        }
+    } finally {
+        loading.value = false
     }
 }
 
@@ -93,7 +126,7 @@ const router = useRouter()
             </div>
         </AppHeader>
         <div class="app-chat-window wrapper">
-            <div class="app-chat-window-messages">
+            <div class="app-chat-window-messages" v-if="aiStore.chatType === ChatTypeEnum.default">
                 <div class="msg ai-msg">
                     <div class="content">
                         <div class="profile">
@@ -108,8 +141,8 @@ const router = useRouter()
                     <span class="time">{{ getCurrentFormattedDate() }}</span>
                 </div>
                 <!-- looped message -->
-                <div v-for="chat in dashboardStore.chat_messages" class="msg"
-                    :class="chat.type === 'user' ? 'user-msg' : 'ai-msg'">
+                <div v-for="(chat, i) in dashboardStore.chat_messages" class="msg"
+                    :class="chat.type === 'user' ? 'user-msg' : 'ai-msg'" :key="i">
 
                     <!-- bot message start. -->
                     <div class="content" v-if="chat.type === 'bot'">
@@ -143,7 +176,69 @@ const router = useRouter()
                 </div>
 
             </div>
-            <form class="wrapper" @submit.prevent="submitQuery">
+            <div v-else>
+                <div class="app-chat-window-messages">
+                    <div class="msg ai-msg">
+                        <div class="content">
+                            <div class="profile">
+                                <img src="../../public/chatbot-profile.svg" alt="">
+                            </div>
+                            <div class="body">
+                                <p>
+                                    Hello, {{ userName }} here is your chosen scenario to answer.
+                                </p>
+                                <br>
+                                <p>
+                                    <strong>
+                                        {{ aiStore.chatSettings.scenario }}
+                                    </strong>
+                                </p>
+                                <br>
+                                <p>---</p>
+                                <p>
+                                    {{ aiStore.chatSettings.description }}
+                                </p>
+                            </div>
+
+                            <!-- looped message -->
+
+                            <!-- looped message end -->
+
+                        </div>
+                        <span class="time">{{ getCurrentFormattedDate() }}</span>
+                    </div>
+
+                    
+                    <!-- looped message -->
+                    <div v-for="(chat, i) in aiStore.chat_messages" class="msg"
+                        :class="chat.type === 'user' ? 'user-msg' : 'ai-msg'" :key="i">
+
+                        <!-- bot message start. -->
+                        <div class="content" v-if="chat.type === 'bot'">
+                            <div class="profile">
+                                <img src="../../public/chatbot-profile.svg" alt="">
+                            </div>
+                            <div class="body">
+                                <p v-html="formattedText(chat.message)">
+                                </p>
+                            </div>
+                        </div>
+                        <!-- bot message end. -->
+                        <div class="body" v-if="chat.type === 'user'">
+                            <p>
+                                {{ chat.message }}
+                            </p>
+                            <p>
+                                {{ chat.best_response }}
+                            </p>
+                        </div>
+                        <span class="time">{{ chat.time }}</span>
+                    </div>
+                    <!-- looped message end -->
+
+                </div>
+            </div>
+            <form class="wrapper" @submit.prevent="submitQuery" v-if="aiStore.chatType === ChatTypeEnum.default">
                 <div class="app-input">
                     <input v-model="message" type="text" placeholder="Type here..." ref="message-box">
                     <button class="cta" type="submit">
@@ -151,6 +246,16 @@ const router = useRouter()
                     </button>
                 </div>
             </form>
+
+            <form class="wrapper" @submit.prevent="evaluateUserAnswer" v-else>
+                <div class="app-input">
+                    <input v-model="userResponse.message" type="text" placeholder="Type here..." ref="message-box">
+                    <button class="cta" type="submit">
+                        <img src="../../public/send.svg" />
+                    </button>
+                </div>
+            </form>
+
         </div>
     </div>
 </template>
@@ -274,6 +379,7 @@ const router = useRouter()
                         word-break: break-word;
                         font-size: 14px;
                         line-height: 20px;
+                        display: block;
                     }
                 }
 
@@ -322,6 +428,7 @@ const router = useRouter()
                         color: #fff;
                         font-size: 14px;
                         line-height: 20px;
+                        display: block;
                     }
                 }
 

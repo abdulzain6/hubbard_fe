@@ -2,9 +2,11 @@
 import AppHeader from '../components/appheader.vue'
 import AppMobileNav from '../components/mobilenav.vue'
 import Navbar from '../components/navbar.vue'
+import { useUserStore } from '@/store/user';
+const userStore = useUserStore()
 const series = [{
     name: 'Series 1',
-    data: [80, 50, 30, 40, 100, 20],
+    data: [0, 80],
 }, {
     name: 'Series 2',
     data: [20, 30, 40, 80, 20, 80],
@@ -21,6 +23,7 @@ const chartOptions = {
         categories: ['January', 'February', 'March', 'April', 'May', 'June']
     }
 }
+userStore.getLeaderboard()
 </script>
 <template>
     <div>
@@ -49,7 +52,7 @@ const chartOptions = {
             </div>
             <div class="app-leaderboard">
                 <div class="app-leaderboard-head">
-                    <div class="user">
+                    <div class="user" v-if="userStore.score.leaderboard[1]">
                         <div class="thumbnail">
                             <img src="/user-portrait.jpg" alt="">
                             <span class="place">2</span>
@@ -63,21 +66,35 @@ const chartOptions = {
                             </span>
                         </div>
                     </div>
-                    <div class="user">
+                    <div v-else class="user">
+                        <div class="thumbnail">
+                            <img src="/Unknown_person.jpg" alt="">
+                            <span class="place">--</span>
+                        </div>
+                        <div class="points">
+                            <span class="name">
+                                --
+                            </span>
+                            <span class="total-points">
+                                --
+                            </span>
+                        </div>
+                    </div>
+                    <div class="user" v-if="userStore.score.leaderboard[0]">
                         <div class="thumbnail">
                             <img src="/user-portrait2.jpeg" alt="">
                             <span class="place">1</span>
                         </div>
                         <div class="points">
                             <span class="name">
-                                Georgia Brown
+                                {{ userStore.score.leaderboard[0][0] }}
                             </span>
                             <span class="total-points">
-                                25000 Points
+                                {{ userStore.score.leaderboard[0][1] }} points
                             </span>
                         </div>
                     </div>
-                    <div class="user">
+                    <div class="user" v-if="userStore.score.leaderboard[2]">
                         <div class="thumbnail">
                             <img src="/user-portrait3.jpg" alt="">
                             <span class="place">3</span>
@@ -91,40 +108,32 @@ const chartOptions = {
                             </span>
                         </div>
                     </div>
+                    <div v-else class="user">
+                        <div class="thumbnail">
+                            <img src="/Unknown_person.jpg" alt="">
+                            <span class="place">--</span>
+                        </div>
+                        <div class="points">
+                            <span class="name">
+                                --
+                            </span>
+                            <span class="total-points">
+                                --
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="app-leaderboard-list">
-                    <div class="leaderboard-item">
+                    <div class="leaderboard-item" v-for="(user,i) in userStore.score.leaderboard" :key="i">
                         <div class="leaderboard-item-thumbnail-container">
                             <div class="leaderboard-item-thumbnail">
                                 <img src="/user-portrait2.jpeg" alt="">
-                                <span class="leaderboard-item-place">4</span>
+                                <span class="leaderboard-item-place">{{ i + 1 }}</span>
 
                             </div>
-                            <span class="leaderboard-item-name">Jerome Bell</span>
+                            <span class="leaderboard-item-name">{{ user[0] }}</span>
                         </div>
-                        <span class="leaderboard-item-points">20800 point</span>
-                    </div>
-                    <div class="leaderboard-item">
-                        <div class="leaderboard-item-thumbnail-container">
-                            <div class="leaderboard-item-thumbnail">
-                                <img src="/user-portrait2.jpeg" alt="">
-                                <span class="leaderboard-item-place">4</span>
-
-                            </div>
-                            <span class="leaderboard-item-name">Jerome Bell</span>
-                        </div>
-                        <span class="leaderboard-item-points">20800 point</span>
-                    </div>
-                    <div class="leaderboard-item">
-                        <div class="leaderboard-item-thumbnail-container">
-                            <div class="leaderboard-item-thumbnail">
-                                <img src="/user-portrait2.jpeg" alt="">
-                                <span class="leaderboard-item-place">4</span>
-
-                            </div>
-                            <span class="leaderboard-item-name">Jerome Bell</span>
-                        </div>
-                        <span class="leaderboard-item-points">20800 point</span>
+                        <span class="leaderboard-item-points">{{ user[1] }} points</span>
                     </div>
                 </div>
             </div>

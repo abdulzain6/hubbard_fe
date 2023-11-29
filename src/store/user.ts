@@ -19,7 +19,8 @@ export const useUserStore = defineStore('user', {
             message: {} as { message: string; type: string },
             userChatHistory: [] as string[],
             scenario: {} as any,
-            activeScenarios: [] as any
+            activeScenarios: [] as any,
+            score: [] as any
         }
     },
     actions: {
@@ -104,6 +105,10 @@ export const useUserStore = defineStore('user', {
         async getAllScenarios() {
             const { data } = await axios.get('/api/v1/scenarios/get_all_scenarios')
             this.activeScenarios = data
+        },
+        async getLeaderboard() {
+            const { data } = await axios.get('/api/v1/scenarios/leaderboard')
+            this.score = data
         },
         setMessage(message: { message: string; type: string }) {
             this.message = message

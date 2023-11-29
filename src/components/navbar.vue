@@ -11,8 +11,7 @@ const store = useUserStore()
             </router-link>
         </div>
         <ul>
-            <!-- v-if="store.user.role === 'admin'" -->
-            <li>
+            <li v-if="store.user.role === 'admin'">
                 <router-link to="/admin">
                     <img src="/message.svg" alt="">
                     <span>

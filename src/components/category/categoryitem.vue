@@ -5,18 +5,18 @@ defineProps({
     title: String,
     description: String
 })
-
-function renderImg(str: any) {
-    return new URL(str, import.meta.url).toString()
+function truncateStr(str: string | undefined) {
+    if(str) {
+    return str.substring(0,100) + '...'
+    }
 }
-
 </script>
 <template>
     <div class="category-item">
         <img :src="`/edit.svg`" :alt="title">
         <h3>{{ title }}</h3>
         <p>
-            {{ description }}
+            {{ truncateStr(description) }}
         </p>
     </div>
 </template>

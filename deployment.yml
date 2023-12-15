@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: hubbard-fe-container
-          image: registry.digitalocean.com/container-hubbard/hubbard_fe:latest
+          image: registry.digitalocean.com/container-hubbard/registry.digitalocean.com/container-hubbard/hubbard_fe:latest
           ports:
             - containerPort: 5173
               protocol: TCP
